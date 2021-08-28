@@ -12,14 +12,27 @@ typedef struct cell {
 
 Atom _NIL = { '%' };
 Cell NIL = { &_NIL, NULL, NULL };
+
+Atom *new_atom(char c)
+{
+	Atom *ap;
+	ap = (Atom *) malloc((size_t) sizeof(Atom));
+	if (!ap)
+		fprintf(stderr, "error: memory allocation failed\n");
+	else
+		ap->sym = c;
+	return ap;
+}
 Cell *new_cell(Atom *ap)
 {
 	Cell *cp;
 	cp = (Cell *) malloc((size_t) sizeof(Cell));
-	if (!cp)
+	if (!cp) {
 		fprintf(stderr, "error: memory allocation failed\n");
-	else
+	} else {
 		cp->atm = ap;
+		cp->car = cp->cdr = NULL;
+	}
 	return cp;
 }
 
@@ -48,19 +61,4 @@ Cell *cons(Cell *c1, Cell *c2)
 		cp->cdr = c2;
 	}
 	return cp;
-}
-
-void prnexp(Cell *cp)
-{
-	if (!cp)
-		return;
-	if (is_atom(cp)) {
-		putchar(cp->atm->sym);
-		return;
-	}
-	putchar('[');
-	prnexp(cp->car);
-	putchar('.');
-	prnexp(cp->cdr);
-	putchar(']');
 }
