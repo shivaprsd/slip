@@ -45,19 +45,37 @@ Cell *read(char s[])
 
 void print(Cell *cp)
 {
-	if (cp) {
+	Cell *root;
+	if (!cp)
+		return;
+	if (is_atom(cp)) {
 		printexp(cp);
-		putchar('\n');
+		return;
 	}
+	putchar('[');
+	for (root = cp; cp != NULL; cp = cdr(cp)) {
+		if (is_atom(cp) && !is_eq(cp, &NIL)) {
+			putchar('.');
+			printexp(cp);
+		}
+		if (root != cp && cdr(cp))
+			putchar(',');
+		print(car(cp));
+	}
+	putchar(']');
 }
 
 int main()
 {
 	char *s;
+	Cell *cp;
 	while ((s = readline("> "))) {		// -Wparen
-		print(read(s));
+		print(cp = read(s));
+		if (cp)
+			putchar('\n');
 		add_history(s);
 		free(s);
+		cp = NULL;
 	}
 	return 0;
 }
