@@ -6,11 +6,26 @@ int readatom(Atom *ap, char s[])
 {
 	char c;
 	int i = 0;
-	if (!ap)
-		return -1;
-	while (isalpha(c = s[i++]))
-		ap->sym = c;
+	if (ap) {
+		while (isalpha(c = s[i++]))
+			ap->sym = c;
+	}
 	return i - 1;
+}
+
+int readcell(Cell **cpx, char s[])
+{
+	if (cpx) {
+		*cpx = new_cell(NULL);
+		(*cpx)->atm = new_atom('\0');
+		return readatom((*cpx)->atm, s);
+	}
+	return -1;
+}
+
+bool is_invch(char c, bool dotp)
+{
+	return dotp && (c == '.' || c == ',');
 }
 
 bool is_invLA(char cur, char la)
@@ -27,55 +42,50 @@ bool is_invLA(char cur, char la)
 	case ']':
 		return la == '[' || la == 'a';
 	}
+	/* unknown cur => cannot determine validity of la */
+	return false;
 }
 
-Cell *unwind(Cell *st)
+Cell *unwind(Cell *stk)
 {
 	Cell *cp = NULL;
-	if (!st)
-		return NULL;
-	cp = st->car;
-	st = st->cdr;
-	for (; st != NULL; st = st->cdr)
-		cp = cons(st->car, cp);
+	if (stk) {
+		cp = stk->car;
+		while ((stk = stk->cdr))		// -Wparen
+			cp = cons(stk->car, cp);
+	}
 	return cp;
 }
 
-int readlist(Cell **cp, char s[])
+int readlist(Cell **cpx, char s[])
 {
 	int i;
 	char c, *beg;
 	bool dotp = false;
-	Cell *tmp, *st = NULL;
-	if (*s == '\0')
-		return 0;
+	Cell *tmp, *stk = NULL;
 	if (*s != '[') {
 		if (!isalpha(*s))
 			return 0;
-		*cp = new_cell(NULL);
-		(*cp)->atm = new_atom('\0');
-		return readatom((*cp)->atm, s);
+		return readcell(cpx, s);
 	}
 	beg = s;
-	while ((c = *s++)) {		// -Wparen
-		if (is_invLA(c, *s))
-			return beg - s;
+	while ((c = *s++)) {			// -Wparen
+		if (is_invch(c, dotp))
+			break;
+		if (is_invLA(c, *s)) {
+			++s;
+			break;
+		}
 		switch (c) {
 		case '.':
-			if (!dotp) {
-				dotp = true;
-				break;
-			}
-			/* else fall through */
+			dotp = true;
 		case ',':
-			if (dotp)
-				return beg - s + 1;
-			break;
+			continue;
 		case ']':
 			if (!dotp)
-				st = cons(&NIL, st);
-			*cp = unwind(st);
-			return s - beg;
+				stk = cons(&NIL, stk);
+			*cpx = unwind(stk);
+			return s - beg;		/* success */
 		case '[':
 			if (s == beg + 1)
 				break;
@@ -84,11 +94,11 @@ int readlist(Cell **cp, char s[])
 			i = readlist(&tmp, --s);
 			if (i <= 0)
 				return beg - s + i;
+			stk = cons(tmp, stk);
 			s += i;
-			st = cons(tmp, st);
 		}
 	}
-	return beg - s + 1;
+	return beg - s + 1;	/* error */
 }
 
 int readexp(Cell *cp, char s[])
