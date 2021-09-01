@@ -1,4 +1,27 @@
 #include "store.c"
+#include "util.c"
+
+char *read_input()
+{
+	int n, i;
+	char *s, *lines[100];
+	const char *pmt = "> ";
+
+	n = i = 0;
+	while ((s = readline(pmt))) {		// -Wparen
+		lines[i++] = trim(s);
+		pmt = ".. ";
+		if ((n += oc_diff(s)) <= 0) {
+			s = concat(lines, i);
+			break;
+		}
+	}
+	if (!s || i > 1) {
+		while (--i >= 0)
+			free(lines[i]);
+	}
+	return s;
+}
 
 bool printatm(Cell *cp, bool dot)
 {
