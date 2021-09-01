@@ -8,7 +8,7 @@ enum err_code {
 	TRAIL_CHARS, EMPTY_STR
 };
 
-void printerr(unsigned pad, enum err_code err)
+void printerr(char s[], unsigned pad, enum err_code err)
 {
 	static const char arrow[] = "^--";
 	static const char *err_msgs[] = {
@@ -17,9 +17,10 @@ void printerr(unsigned pad, enum err_code err)
 		"Trailing characters"
 	};
 	if (err != EMPTY_STR) {
+		puts(s);
 		while (pad--)
 			putchar(' ');
-		printf("  %s %s\n", arrow, err_msgs[err]);
+		printf("%s %s\n", arrow, err_msgs[err]);
 	}
 }
 
@@ -39,7 +40,7 @@ Cell *read(char s[])
 	} else {
 		return cp;
 	}
-	printerr(rlen, err);
+	printerr(s, rlen, err);
 	return NULL;
 }
 
@@ -65,17 +66,49 @@ void print(Cell *cp)
 	putchar(']');
 }
 
+int unmatch_lb(char s[])
+{
+	char c;
+	int i = 0;
+	while ((c = *s++)) {		// -Wparen
+		if (c == '[')
+			++i;
+		else if (c == ']')
+			--i;
+	}
+	return i;
+}
+
 int main()
 {
-	char *s;
+	int i, j, n;
+	char *s, *t[100];
+	const char *pmt = "> ";
 	Cell *cp;
-	while ((s = readline("> "))) {		// -Wparen
+	i = j = 0;
+	while ((s = readline(pmt))) {		// -Wparen
+		t[j++] = s;
+		if ((i += unmatch_lb(s)) != 0) {
+			pmt = ".. ";
+			continue;
+		}
+		if (j > 1) {
+			for (n = i = 0; i < j; ++i)
+				n += strlen(t[i]);
+			s = malloc(n + 1);
+			for (*s = '\0', i = 0; i < j; ++i) {
+				strcat(s, t[i]);
+				free(t[i]);
+			}
+		}
 		print(cp = read(s));
 		if (cp)
 			putchar('\n');
 		add_history(s);
 		free(s);
 		cp = NULL;
+		i = j = 0;
+		pmt = "> ";
 	}
 	return 0;
 }
