@@ -79,6 +79,17 @@ int unmatch_lb(char s[])
 	return i;
 }
 
+char *trim(char s[])
+{
+	char c, *r, *t;
+	r = t = s;
+	while ((c = *s++))		// -Wparen
+		if (!isspace(c))
+			*t++ = c;
+	*t = '\0';
+	return r;
+}
+
 int main()
 {
 	int i, j, n;
@@ -94,12 +105,14 @@ int main()
 		}
 		if (j > 1) {
 			for (n = i = 0; i < j; ++i)
-				n += strlen(t[i]);
+				n += strlen(trim(t[i]));
 			s = malloc(n + 1);
 			for (*s = '\0', i = 0; i < j; ++i) {
 				strcat(s, t[i]);
 				free(t[i]);
 			}
+		} else {
+			trim(s);
 		}
 		print(cp = read(s));
 		if (cp)
