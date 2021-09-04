@@ -25,12 +25,11 @@ void printerr(unsigned pad, enum err_code err)
 
 Cell *read(char s[])
 {
-	Cell *cp;
+	Cell *cp = NULL;
 	int slen, rlen;
 	enum err_code err;
-	cp = new_cell(NULL);
 	slen = strlen(s);
-	if ((rlen = readexp(cp, s)) < 0) {
+	if ((rlen = readlist(&cp, s)) < 0) {
 		rlen = -rlen;
 		err = (rlen == slen) ? INCOMPL_EXP : UNEXP_TOKEN;
 	} else if (rlen == 0) {
@@ -55,7 +54,7 @@ void print(Cell *cp)
 int main()
 {
 	char *s;
-	while (s = readline("> ")) {
+	while ((s = readline("> "))) {		// -Wparen
 		print(read(s));
 		add_history(s);
 		free(s);
