@@ -46,19 +46,13 @@ Cell *read(char s[])
 void print(Cell *cp)
 {
 	Cell *root;
-	if (!cp)
+	if (!cp || printatm(cp, false))
 		return;
-	if (is_atom(cp)) {
-		printexp(cp);
-		return;
-	}
 	putchar('[');
-	for (root = cp; cp != NULL; cp = cdr(cp)) {
-		if (is_atom(cp) && !is_eq(cp, &NIL)) {
-			putchar('.');
-			printexp(cp);
-		}
-		if (root != cp && cdr(cp))
+	for (root = cp; !is_null(cp); cp = cdr(cp)) {
+		if (printatm(cp, true))
+			break;
+		if (cp != root)
 			putchar(',');
 		print(car(cp));
 	}

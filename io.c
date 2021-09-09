@@ -1,6 +1,5 @@
 #include <ctype.h>
 #include "core.c"
-int buildcell(Cell **cpx, char s[], char t);
 
 int readatom(Atom *ap, char s[])
 {
@@ -27,7 +26,6 @@ bool is_invch(char c, bool dotp)
 {
 	return dotp && (c == '.' || c == ',');
 }
-
 bool is_invLA(char cur, char la)
 {
 	cur = isalpha(cur) ? 'a' : cur;
@@ -101,14 +99,18 @@ int readlist(Cell **cpx, char s[])
 	return beg - s + 1;	/* error */
 }
 
+bool printatm(Cell *cp, bool dot)
+{
+	if (!is_atom(cp))
+		return false;
+	putchar(dot ? '.' : 0);
+	putchar(cp->atm->sym);
+	return true;
+}
 void printexp(Cell *cp)
 {
-	if (!cp)
+	if (!cp || printatm(cp, false))
 		return;
-	if (is_atom(cp)) {
-		putchar(cp->atm->sym);
-		return;
-	}
 	putchar('[');
 	printexp(cp->car);
 	putchar('.');

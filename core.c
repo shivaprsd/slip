@@ -36,29 +36,49 @@ Cell *new_cell(Atom *ap)
 	return cp;
 }
 
-bool is_atom(Cell *cp)
+bool is_atom(Cell *x)
 {
-	return cp && cp->atm;
-}
-bool is_eq(Cell *c1, Cell *c2)
-{
-	return is_atom(c1) && is_atom(c2) && (c1->atm == c2->atm);
-}
-Cell *car(Cell *cp)
-{
-	return is_atom(cp) ? NULL : cp->car;
-}
-Cell *cdr(Cell *cp)
-{
-	return is_atom(cp) ? NULL : cp->cdr;
-}
-Cell *cons(Cell *c1, Cell *c2)
-{
-	Cell *cp;
-	cp = new_cell(NULL);
-	if (cp) {
-		cp->car = c1;
-		cp->cdr = c2;
+	if (!x) {
+		fputs("fatal: is_atom() received NULL pointer arg\n", stderr);
+		exit(1);
 	}
-	return cp;
+	return x->atm != NULL;
+}
+bool is_eq(Cell *x, Cell *y)
+{
+	if (!is_atom(x) || !is_atom(y)) {
+		puts("warning: is_eq() on non-atoms is undefined");
+		return false;
+	}
+	return x->atm == y->atm;
+}
+Cell *car(Cell *x)
+{
+	if (is_atom(x)) {
+		puts("warning: car() on atom is undefined");
+		return NULL;
+	}
+	return x->car;
+}
+Cell *cdr(Cell *x)
+{
+	if (is_atom(x)) {
+		puts("warning: cdr() on atom is undefined");
+		return NULL;
+	}
+	return x->cdr;
+}
+Cell *cons(Cell *x, Cell *y)
+{
+	Cell *e = new_cell(NULL);
+	if (e) {
+		e->car = x;
+		e->cdr = y;
+	}
+	return e;
+}
+
+bool is_null(Cell *x)
+{
+	return is_atom(x) && is_eq(x, &NIL);
 }
