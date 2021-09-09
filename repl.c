@@ -63,6 +63,7 @@ int main()
 {
 	char *s;
 	Cell *cp;
+	initkeys(keysyms);
 	while ((s = readline("> "))) {		// -Wparen
 		print(cp = read(s));
 		if (cp)

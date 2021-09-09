@@ -1,32 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+typedef enum {
+	NOKEY = -1, NIL, T,
+	ATOM, EQ, CAR, CDR, CONS
+} Keywrd;
 typedef struct {
 	char sym;
+	Keywrd key;
 } Atom;
 typedef struct cell {
-	Atom *atm;
+	const Atom *atm;
 	struct cell *car;
 	struct cell *cdr;
 } Cell;
 
-Atom _NIL = { '%' };
-Cell NIL = { &_NIL, NULL, NULL };
+const char keysyms[] = {
+	/*none,*/ '%', 'T',
+	'A', 'E', 'F', 'R', 'C',
+	'\0'
+};
+extern Cell *nil, *tru;
 
-Atom *new_atom(char c)
+Atom *new_atom(char c, Keywrd k)
 {
 	Atom *ap;
 	ap = (Atom *) malloc((size_t) sizeof(Atom));
-	if (!ap)
+	if (!ap) {
 		fprintf(stderr, "error: memory allocation failed\n");
-	else
+	} else {
 		ap->sym = c;
+		ap->key = k;
+	}
 	return ap;
 }
-Cell *new_cell(Atom *ap)
+Cell *new_cell(const Atom *ap)
 {
-	Cell *cp;
-	cp = (Cell *) malloc((size_t) sizeof(Cell));
+	Cell *cp = (Cell *) malloc((size_t) sizeof(Cell));
 	if (!cp) {
 		fprintf(stderr, "error: memory allocation failed\n");
 	} else {
@@ -80,5 +90,5 @@ Cell *cons(Cell *x, Cell *y)
 
 bool is_null(Cell *x)
 {
-	return is_atom(x) && is_eq(x, &NIL);
+	return is_atom(x) && is_eq(x, nil);
 }

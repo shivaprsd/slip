@@ -1,25 +1,18 @@
 #include <ctype.h>
-#include "core.c"
+#include "store.c"
 
-int readatom(Atom *ap, char s[])
+int readatom(Cell **cpx, char s[])
 {
 	char c;
 	int i = 0;
-	if (ap) {
-		while (isalpha(c = s[i++]))
-			ap->sym = c;
+	Cell *cp;
+	while (isalpha(s[i]))
+		c = s[i++];
+	if (i) {
+		cp = addsym(&symtree, c, NOKEY);
+		*cpx = new_cell(cp->atm);
 	}
-	return i - 1;
-}
-
-int readcell(Cell **cpx, char s[])
-{
-	if (cpx) {
-		*cpx = new_cell(NULL);
-		(*cpx)->atm = new_atom('\0');
-		return readatom((*cpx)->atm, s);
-	}
-	return -1;
+	return i;
 }
 
 bool is_invch(char c, bool dotp)
@@ -61,11 +54,8 @@ int readlist(Cell **cpx, char s[])
 	char c, *beg;
 	bool dotp = false;
 	Cell *tmp, *stk = NULL;
-	if (*s != '[') {
-		if (!isalpha(*s))
-			return 0;
-		return readcell(cpx, s);
-	}
+	if (*s != '[')
+		return readatom(cpx, s);
 	beg = s;
 	while ((c = *s++)) {			// -Wparen
 		if (is_invch(c, dotp))
@@ -81,7 +71,7 @@ int readlist(Cell **cpx, char s[])
 			continue;
 		case ']':
 			if (!dotp)
-				stk = cons(&NIL, stk);
+				stk = cons(nil, stk);
 			*cpx = unwind(stk);
 			return s - beg;		/* success */
 		case '[':
