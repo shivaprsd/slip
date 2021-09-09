@@ -1,7 +1,7 @@
 #include "core.c"
 
 Cell *symtree = NULL;
-Cell *nil, *tru;
+Cell *nil, *tru, *quot;
 
 /* add|lookup atomic symbols in a BST */
 Cell *addsym(Cell **cpx, char sym, char key)
@@ -21,6 +21,7 @@ void initkeys(const char syms[])
 	int k;
 	nil = addsym(&symtree, syms[NIL], NIL);
 	tru = addsym(&symtree, syms[T], T);
+	quot = addsym(&symtree, syms[QUOTE], QUOTE);
 	for (k = T + 1; syms[k] != '\0'; ++k)
 		addsym(&symtree, syms[k], k);
 }

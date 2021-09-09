@@ -3,7 +3,8 @@
 #include <stdbool.h>
 typedef enum {
 	NOKEY = -1, NIL, T,
-	ATOM, EQ, CAR, CDR, CONS
+	ATOM, EQ, CAR, CDR, CONS,
+	QUOTE, COND, LABEL, LAMBDA
 } Keywrd;
 typedef struct {
 	char sym;
@@ -18,9 +19,9 @@ typedef struct cell {
 const char keysyms[] = {
 	/*none,*/ '%', 'T',
 	'A', 'E', 'F', 'R', 'C',
-	'\0'
+	'Q', 'I', 'L', 'Y', '\0'
 };
-extern Cell *nil, *tru;
+extern Cell *nil, *tru, *quot;
 
 Atom *new_atom(char c, Keywrd k)
 {
@@ -87,8 +88,42 @@ Cell *cons(Cell *x, Cell *y)
 	}
 	return e;
 }
-
 bool is_null(Cell *x)
 {
 	return is_atom(x) && is_eq(x, nil);
+}
+#define is_true(x) !is_null(x)
+#define prop(b) (b ? tru : nil)
+
+#define caar(x) car(car(x))
+#define cadr(x) car(cdr(x))
+#define cadar(x) cadr(car(x))
+#define caddr(x) cadr(cdr(x))
+#define caddar(x) caddr(car(x))
+#define list(x, y) cons(x, cons(y, nil))
+
+Cell *append(Cell *x, Cell *y)
+{
+	return is_null(x) ? y : cons(car(x), append(cdr(x), y));
+}
+Cell *pair(Cell *x, Cell *y)
+{
+	if (is_null(x) && is_null(y))
+		return nil;
+	else if (!is_atom(x) && !is_atom(y))
+		return cons(list(car(x), car(y)), pair(cdr(x), cdr(y)));
+	return NULL;
+}
+Cell *assoc(Cell *x, Cell *y)
+{
+	return is_eq(caar(y), x) ? cadar(y) : assoc(x, cdr(y));
+}
+
+Cell *appq(Cell *m)
+{
+	return is_null(m) ? nil : cons(list(quot, car(m)), appq(cdr(m)));
+}
+Cell *apply(Cell *f, Cell *args)
+{
+	return cons(f, appq(args));
 }

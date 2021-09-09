@@ -65,12 +65,13 @@ int main()
 	Cell *cp;
 	initkeys(keysyms);
 	while ((s = readline("> "))) {		// -Wparen
-		print(cp = read(s));
-		if (cp)
+		cp = read(s);
+		if (cp) {
+			print(apply(car(cp), cdr(cp)));
 			putchar('\n');
+		}
 		add_history(s);
 		free(s);
-		cp = NULL;
 	}
 	return 0;
 }
