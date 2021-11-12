@@ -119,11 +119,59 @@ Cell *assoc(Cell *x, Cell *y)
 	return is_eq(caar(y), x) ? cadar(y) : assoc(x, cdr(y));
 }
 
+Cell *eval(Cell *, Cell *);
+Cell *evcon(Cell *c, Cell *a)
+{
+	return is_true(eval(caar(c), a)) ? eval(cadar(c), a) : evcon(cdr(c), a);
+}
+Cell *evlis(Cell *m, Cell *a)
+{
+	return is_null(m) ? nil : cons(eval(car(m), a), evlis(cdr(m), a));
+}
+Cell *eval(Cell *e, Cell *a)
+{
+	Cell *cp;
+	if (is_atom(e))
+		return assoc(e, a);
+	if (is_atom(cp = car(e))) {
+		switch (cp->atm->key) {
+		case QUOTE:
+			return cadr(e);
+		case ATOM:
+			return prop(is_atom(eval(cadr(e), a)));
+		case EQ:
+			return prop(is_eq(eval(cadr(e), a), eval(caddr(e), a)));
+		case COND:
+			return evcon(cdr(e), a);
+		case CAR:
+			return car(eval(cadr(e), a));
+		case CDR:
+			return cdr(eval(cadr(e), a));
+		case CONS:
+			return cons(eval(cadr(e), a), eval(caddr(e), a));
+		default:
+			return eval(cons(assoc(car(e), a), cdr(e)), a);
+		}
+	}
+	if (is_atom(cp = caar(e))) {
+		switch (cp->atm->key) {
+		case LABEL:
+			return eval(cons(caddar(e), cdr(e)),
+				cons(list(cadar(e), car(e)), a));
+		case LAMBDA:
+			return eval(caddar(e),
+				append(pair(cadar(e), evlis(cdr(e), a)), a));
+		default:
+			break;
+		}
+	}
+	return NULL;
+}
 Cell *appq(Cell *m)
 {
 	return is_null(m) ? nil : cons(list(quot, car(m)), appq(cdr(m)));
 }
 Cell *apply(Cell *f, Cell *args)
 {
-	return cons(f, appq(args));
+	return eval(cons(f, appq(args)), nil);
 }
