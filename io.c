@@ -4,13 +4,16 @@
 int readatom(Cell **cpx, char s[])
 {
 	char c;
-	int i = 0;
+	int i = 0, j;
 	Cell *cp;
-	while (isalpha(s[i]))
-		c = s[i++];
+	if (isalpha(s[0]))
+		while (isalnum(s[++i]))
+			;
 	if (i) {
-		cp = addsym(&symtree, c, NOKEY);
+		c = s[i]; s[i] = '\0';
+		cp = addsym(&symtree, s, NOKEY);
 		*cpx = new_cell(cp->atm);
+		s[i] = c;
 	}
 	return i;
 }
@@ -21,8 +24,8 @@ bool is_invch(char c, bool dotp)
 }
 bool is_invLA(char cur, char la)
 {
-	cur = isalpha(cur) ? 'a' : cur;
-	la = isalpha(la) ? 'a' : la;
+	cur = isalnum(cur) ? 'a' : cur;
+	la = isalnum(la) ? 'a' : la;
 	switch (cur) {
 	case '[':
 		return la == '.' || la == ',';
@@ -30,6 +33,7 @@ bool is_invLA(char cur, char la)
 	case ',':
 		return la == '.' || la == ',' || la == ']';
 	case 'a':
+		return la == '[';
 	case ']':
 		return la == '[' || la == 'a';
 	}
@@ -50,7 +54,7 @@ Cell *unwind(Cell *stk)
 
 int readlist(Cell **cpx, char s[])
 {
-	int i;
+	int i = 0;
 	char c, *beg;
 	bool dotp = false;
 	Cell *tmp, *stk = NULL;
@@ -63,6 +67,10 @@ int readlist(Cell **cpx, char s[])
 		if (is_invLA(c, *s)) {
 			++s;
 			break;
+		}
+		if (i > 1) {
+			--i;
+			continue;
 		}
 		switch (c) {
 		case '.':
@@ -79,11 +87,10 @@ int readlist(Cell **cpx, char s[])
 				break;
 			/* else fall through */
 		default:
-			i = readlist(&tmp, --s);
+			i = readlist(&tmp, s - 1);
 			if (i <= 0)
-				return beg - s + i;
+				return beg - s + 1 + i;
 			stk = cons(tmp, stk);
-			s += i;
 		}
 	}
 	return beg - s + 1;	/* error */
@@ -94,7 +101,7 @@ bool printatm(Cell *cp, bool dot)
 	if (!is_atom(cp))
 		return false;
 	putchar(dot ? '.' : 0);
-	putchar(cp->atm->sym);
+	fputs(cp->atm->sym, stdout);
 	return true;
 }
 void printexp(Cell *cp)
