@@ -5,8 +5,11 @@
 #define CELL_END ']'
 #define CELL_SEP '.'
 
-#define LIST_BEG '['
-#define LIST_END ']'
-#define LIST_SEP ','
+#define LIST_BEG '('
+#define LIST_END ')'
+#define LIST_SEP ' '
+
+#define QUOT_MAC '\''
+#define CMNT_MAC ';'
 
 #endif

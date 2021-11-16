@@ -2,11 +2,11 @@
  * An LL(1) recursive descent parser to turn S-Expressions, defined by the
  * following minimal grammar, in to Lisp lists.
  *
- *   <S-Expr>	::=  <atom> | <list>
- *   <list>	::=  "[" <space> <items> <space> "]"
+ *   <S-Expr>	::=  <atom> | <list> | "'" <S-Expr>
+ *   <list>	::=  "(" <space> <items> <space> ")"
  *   <space>	::=  <empty> | " "
  *   <items>	::=  <empty> | <sequence>
- *   <sequence>	::=  <S-Expr> | <S-Expr> "," <space> <sequence>
+ *   <sequence>	::=  <S-Expr> | <S-Expr> " " <space> <sequence>
  *   <atom>	::=  <letter> <symbol>
  *   <symbol>	::=  <empty> | <letter> <symbol>
  */
@@ -19,9 +19,12 @@ Cell *parse_sexp(const char s[], unsigned *i)
 {
 	Cell *cp;
 
-	if (cp = parse_atom(s, i))
+	if ((cp = parse_atom(s, i)) || (cp = parse_list(s, i)))
 		return cp;
-	return parse_list(s, i);
+	if (parse_token(QUOT_MAC, s, i))
+		if (cp = parse_sexp(s, i))
+			return list(quot, cp);
+	return NULL;
 }
 
 Cell *parse_atom(const char s[], unsigned *i)

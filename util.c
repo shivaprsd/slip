@@ -15,7 +15,7 @@ char *trim(char s[])
 	char c, *r, *t;
 	char lc = ' ';
 	r = t = s;
-	while ((c = *s++)) {		// -Wparen
+	while ((c = *s++) && c != CMNT_MAC) {
 		if (isspace(c))
 			c = ' ';
 		if (c != ' ' || lc != ' ')

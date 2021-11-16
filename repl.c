@@ -47,7 +47,7 @@ int main()
 	initkeys(keysyms);
 	while ((s = read_input())) {		// -Wparen
 		if (*s && (cp = parse(s))) {
-			print(apply(car(cp), cdr(cp)));
+			print(eval(cp, nil));
 			putchar('\n');
 		}
 		add_history(s);
