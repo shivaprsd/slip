@@ -1,4 +1,14 @@
+#include <stdlib.h>
 #include <string.h>
+
+char *dupstr(const char *s)
+{
+	size_t n = strlen(s) + 1;
+	char *t = malloc(n);
+	if (t)
+		memcpy(t, s, n);
+	return t;
+}
 
 char *trim(char s[])
 {

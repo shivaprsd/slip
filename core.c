@@ -4,10 +4,11 @@
 typedef enum {
 	NOKEY = -1, NIL, T,
 	ATOM, EQ, CAR, CDR, CONS,
-	QUOTE, COND, LABEL, LAMBDA
+	QUOTE, COND, LABEL, LAMBDA,
+	NKEYS
 } Keywrd;
 typedef struct {
-	char sym;
+	const char *sym;
 	Keywrd key;
 } Atom;
 typedef struct cell {
@@ -16,21 +17,21 @@ typedef struct cell {
 	struct cell *cdr;
 } Cell;
 
-const char keysyms[] = {
-	/*none,*/ '%', 'T',
-	'A', 'E', 'F', 'R', 'C',
-	'Q', 'I', 'L', 'Y', '\0'
+const char *keysyms[] = {
+	/*none,*/ "[]", "t",
+	"atom", "eq", "car", "cdr", "cons",
+	"quote", "cond", "label", "lambda"
 };
 extern Cell *nil, *tru, *quot;
 
-Atom *new_atom(char c, Keywrd k)
+Atom *new_atom(const char *s, Keywrd k)
 {
 	Atom *ap;
 	ap = (Atom *) malloc((size_t) sizeof(Atom));
 	if (!ap) {
 		fprintf(stderr, "error: memory allocation failed\n");
 	} else {
-		ap->sym = c;
+		ap->sym = s;
 		ap->key = k;
 	}
 	return ap;

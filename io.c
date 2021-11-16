@@ -1,5 +1,4 @@
 #include "store.c"
-#include "util.c"
 
 char *read_input()
 {
@@ -28,7 +27,7 @@ bool printatm(Cell *cp, bool dot)
 	if (!is_atom(cp))
 		return false;
 	putchar(dot ? '.' : 0);
-	putchar(cp->atm->sym);
+	fputs(cp->atm->sym, stdout);
 	return true;
 }
 

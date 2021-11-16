@@ -25,14 +25,19 @@ Cell *parse_sexp(const char s[], unsigned *i)
 
 Cell *parse_atom(const char s[], unsigned *i)
 {
-	char c;
 	Cell *cp;
+	char c, t[MAX_SYM_LEN + 1];
+	unsigned j = 0;
 
-	if (!isalpha(s[*i]))
+	while (isalpha(c = s[*i])) {
+		if (j < MAX_SYM_LEN)
+			t[j++] = c;
+		++*i;
+	}
+	if (!j)
 		return NULL;
-	while (isalpha(s[*i]))
-		c = s[(*i)++];
-	cp = addsym(&symtree, c, NOKEY);
+	t[j] = '\0';
+	cp = addsym(&symtree, t, NOKEY);
 	return new_cell(cp->atm);
 }
 

@@ -1,6 +1,8 @@
 #ifndef PARSE_H
 #define PARSE_H
 
+#define MAX_SYM_LEN 31
+
 Cell *parse_sexp (const char s[], unsigned *i);
 Cell *parse_atom (const char s[], unsigned *i);
 Cell *parse_list (const char s[], unsigned *i);
