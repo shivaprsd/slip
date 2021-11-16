@@ -18,7 +18,7 @@ typedef struct cell {
 } Cell;
 
 const char *keysyms[] = {
-	/*none,*/ "[]", "t",
+	/*none,*/ nilsym, "t",
 	"atom", "eq", "car", "cdr", "cons",
 	"quote", "cond", "label", "lambda"
 };

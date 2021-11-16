@@ -49,15 +49,15 @@ void print(Cell *cp)
 	Cell *root;
 	if (!cp || printatm(cp, false))
 		return;
-	putchar('[');
+	putchar(LB);
 	for (root = cp; !is_null(cp); cp = cdr(cp)) {
 		if (printatm(cp, true))
 			break;
 		if (cp != root)
-			putchar(',');
+			putchar(LS);
 		print(car(cp));
 	}
-	putchar(']');
+	putchar(RB);
 }
 
 int unmatch_lb(char s[])
@@ -65,9 +65,9 @@ int unmatch_lb(char s[])
 	char c;
 	int i = 0;
 	while ((c = *s++)) {		// -Wparen
-		if (c == '[')
+		if (c == LB)
 			++i;
-		else if (c == ']')
+		else if (c == RB)
 			--i;
 	}
 	return i;
@@ -76,10 +76,19 @@ int unmatch_lb(char s[])
 char *trim(char s[])
 {
 	char c, *r, *t;
+	char lc = '^';			// for #if below
 	r = t = s;
 	while ((c = *s++))		// -Wparen
 		if (!isspace(c))
-			*t++ = c;
+			*t++ = lc = c;
+#if LS == ' '
+		else {
+			while (isspace(*s))
+				++s;
+			if (lc != '^' && lc != LB && *s && *s != RB)
+				*t++ = ' ';
+		}
+#endif
 	*t = '\0';
 	return r;
 }
@@ -100,16 +109,15 @@ int main()
 		}
 		if (j > 1) {
 			for (n = i = 0; i < j; ++i)
-				n += strlen(trim(t[i]));
+				n += strlen(t[i]) + 1;
 			s = malloc(n + 1);
 			for (*s = '\0', i = 0; i < j; ++i) {
 				strcat(s, t[i]);
+				strcat(s, " ");
 				free(t[i]);
 			}
-		} else {
-			trim(s);
 		}
-		cp = read(s);
+		cp = read(trim(s));
 		if (cp) {
 			print(apply(car(cp), cdr(cp)));
 			putchar('\n');

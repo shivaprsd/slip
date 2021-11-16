@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include "delims.h"
 #include "store.c"
 
 int readatom(Cell **cpx, char s[])
@@ -20,22 +21,22 @@ int readatom(Cell **cpx, char s[])
 
 bool is_invch(char c, bool dotp)
 {
-	return dotp && (c == '.' || c == ',');
+	return dotp && (c == CS || c == LS);
 }
 bool is_invLA(char cur, char la)
 {
 	cur = isalnum(cur) ? 'a' : cur;
 	la = isalnum(la) ? 'a' : la;
 	switch (cur) {
-	case '[':
-		return la == '.' || la == ',';
-	case '.':
-	case ',':
-		return la == '.' || la == ',' || la == ']';
+	case LB:
+		return la == CS || la == LS;
+	case CS:
+	case LS:
+		return la == CS || la == LS || la == RB;
 	case 'a':
-		return la == '[';
-	case ']':
-		return la == '[' || la == 'a';
+		return la == LB;
+	case RB:
+		return la == LB || la == 'a';
 	}
 	/* unknown cur => cannot determine validity of la */
 	return false;
@@ -58,7 +59,7 @@ int readlist(Cell **cpx, char s[])
 	char c, *beg;
 	bool dotp = false;
 	Cell *tmp, *stk = NULL;
-	if (*s != '[')
+	if (*s != LB)
 		return readatom(cpx, s);
 	beg = s;
 	while ((c = *s++)) {			// -Wparen
@@ -73,16 +74,16 @@ int readlist(Cell **cpx, char s[])
 			continue;
 		}
 		switch (c) {
-		case '.':
+		case CS:
 			dotp = true;
-		case ',':
+		case LS:
 			continue;
-		case ']':
+		case RB:
 			if (!dotp)
 				stk = cons(nil, stk);
 			*cpx = unwind(stk);
 			return s - beg;		/* success */
-		case '[':
+		case LB:
 			if (s == beg + 1)
 				break;
 			/* else fall through */
@@ -100,7 +101,7 @@ bool printatm(Cell *cp, bool dot)
 {
 	if (!is_atom(cp))
 		return false;
-	putchar(dot ? '.' : 0);
+	putchar(dot ? CS : 0);
 	fputs(cp->atm->sym, stdout);
 	return true;
 }
@@ -108,9 +109,9 @@ void printexp(Cell *cp)
 {
 	if (!cp || printatm(cp, false))
 		return;
-	putchar('[');
+	putchar(LB);
 	printexp(cp->car);
-	putchar('.');
+	putchar(CS);
 	printexp(cp->cdr);
-	putchar(']');
+	putchar(RB);
 }
