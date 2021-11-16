@@ -169,11 +169,3 @@ Cell *eval(Cell *e, Cell *a)
 	}
 	return NULL;
 }
-Cell *appq(Cell *m)
-{
-	return is_null(m) ? nil : cons(list(quot, car(m)), appq(cdr(m)));
-}
-Cell *apply(Cell *f, Cell *args)
-{
-	return eval(cons(f, appq(args)), nil);
-}

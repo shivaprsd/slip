@@ -30,13 +30,14 @@ bool is_invLA(char cur, char la)
 	switch (cur) {
 	case LB:
 		return la == CS || la == LS;
+	case QT:
 	case CS:
 	case LS:
 		return la == CS || la == LS || la == RB;
 	case 'a':
-		return la == LB;
+		return la == LB || la == QT;
 	case RB:
-		return la == LB || la == 'a';
+		return la == LB || la == QT || la == 'a';
 	}
 	/* unknown cur => cannot determine validity of la */
 	return false;
@@ -55,20 +56,18 @@ Cell *unwind(Cell *stk)
 
 int readlist(Cell **cpx, char s[])
 {
-	int i = 0;
+	int i = 0, qt_lvl = 0;
 	char c, *beg;
 	bool dotp = false;
 	Cell *tmp, *stk = NULL;
-	if (*s != LB)
+	if (*s != LB && *s != QT)
 		return readatom(cpx, s);
 	beg = s;
 	while ((c = *s++)) {			// -Wparen
 		if (is_invch(c, dotp))
-			break;
-		if (is_invLA(c, *s)) {
-			++s;
-			break;
-		}
+			return beg - s + 1;
+		if (is_invLA(c, *s))
+			return beg - s;
 		if (i > 1) {
 			--i;
 			continue;
@@ -78,23 +77,30 @@ int readlist(Cell **cpx, char s[])
 			dotp = true;
 		case LS:
 			continue;
+		case QT:
+			++qt_lvl;
+			continue;
 		case RB:
 			if (!dotp)
 				stk = cons(nil, stk);
-			*cpx = unwind(stk);
-			return s - beg;		/* success */
+			break;
 		case LB:
 			if (s == beg + 1)
-				break;
+				continue;
 			/* else fall through */
 		default:
 			i = readlist(&tmp, s - 1);
 			if (i <= 0)
 				return beg - s + 1 + i;
+			while (qt_lvl && qt_lvl--)
+				tmp = list(quot, tmp);
 			stk = cons(tmp, stk);
+			continue;
 		}
+		break;
 	}
-	return beg - s + 1;	/* error */
+	*cpx = unwind(stk);
+	return s - beg;
 }
 
 bool printatm(Cell *cp, bool dot)

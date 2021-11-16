@@ -119,7 +119,7 @@ int main()
 		}
 		cp = read(trim(s));
 		if (cp) {
-			print(apply(car(cp), cdr(cp)));
+			print(eval(cp, nil));
 			putchar('\n');
 		}
 		add_history(s);
