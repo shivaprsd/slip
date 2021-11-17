@@ -93,7 +93,7 @@ int readlist(Cell **cpx, char s[])
 			if (i <= 0)
 				return beg - s + 1 + i;
 			while (qt_lvl && qt_lvl--)
-				tmp = list(quot, tmp);
+				tmp = list(quote, tmp);
 			stk = cons(tmp, stk);
 			continue;
 		}

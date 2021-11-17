@@ -100,6 +100,7 @@ int main()
 	const char *pmt = "> ";
 	Cell *cp;
 	initkeys(keysyms);
+	env = nil;
 	i = j = 0;
 	while ((s = readline(pmt))) {		// -Wparen
 		t[j++] = s;
@@ -119,7 +120,7 @@ int main()
 		}
 		cp = read(trim(s));
 		if (cp) {
-			print(eval(cp, nil));
+			print(eval(cp, env));
 			putchar('\n');
 		}
 		add_history(s);

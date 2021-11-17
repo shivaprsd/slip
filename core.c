@@ -5,7 +5,7 @@ typedef enum {
 	NOKEY = -1, NIL, T,
 	ATOM, EQ, CAR, CDR, CONS,
 	QUOTE, COND, LABEL, LAMBDA,
-	NKEYS
+	DEFUN, NKEYS
 } Keywrd;
 typedef struct {
 	char *sym;
@@ -20,9 +20,11 @@ typedef struct cell {
 const char *keysyms[] = {
 	/*none,*/ nilsym, "t",
 	"atom", "eq", "car", "cdr", "cons",
-	"quote", "cond", "label", "lambda"
+	"quote", "cond", "label", "lambda",
+	"defun"
 };
-extern Cell *nil, *tru, *quot;
+extern Cell *nil, *tru;
+Cell *env;
 
 Atom *new_atom(const char *s, Keywrd k)
 {
@@ -99,6 +101,7 @@ bool is_null(Cell *x)
 
 #define caar(x) car(car(x))
 #define cadr(x) car(cdr(x))
+#define cddr(x) cdr(cdr(x))
 #define cadar(x) cadr(car(x))
 #define caddr(x) cadr(cdr(x))
 #define caddar(x) caddr(car(x))
@@ -119,6 +122,13 @@ Cell *pair(Cell *x, Cell *y)
 Cell *assoc(Cell *x, Cell *y)
 {
 	return is_eq(caar(y), x) ? cadar(y) : assoc(x, cdr(y));
+}
+Cell *bind(Cell *f, Cell *a)
+{
+	extern Cell *label, *lambda;
+	a = cons(label, list(f, cons(lambda, a)));
+	env = cons(list(f, a), env);
+	return f;
 }
 
 Cell *eval(Cell *, Cell *);
@@ -151,6 +161,8 @@ Cell *eval(Cell *e, Cell *a)
 			return cdr(eval(cadr(e), a));
 		case CONS:
 			return cons(eval(cadr(e), a), eval(caddr(e), a));
+		case DEFUN:
+			return bind(cadr(e), cddr(e));
 		default:
 			return eval(cons(assoc(car(e), a), cdr(e)), a);
 		}
