@@ -93,6 +93,15 @@ char *trim(char s[])
 	return r;
 }
 
+char *strip_cmnt(char s[])
+{
+	char *r = s;
+	while (*s && *s != CMNT)
+		++s;
+	*s = '\0';
+	return r;
+}
+
 int main()
 {
 	int i, j, n;
@@ -103,7 +112,7 @@ int main()
 	env = nil;
 	i = j = 0;
 	while ((s = readline(pmt))) {		// -Wparen
-		t[j++] = s;
+		t[j++] = strip_cmnt(s);
 		if ((i += unmatch_lb(s)) > 0) {
 			pmt = ".. ";
 			continue;
