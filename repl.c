@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <editline/readline.h>
-#include "io.c"
+#include "parse.c"
 enum err_code {
-	UNEXP_TOKEN, INCOMPL_EXP,
-	TRAIL_CHARS, EMPTY_STR
+	UNEXP_TOKEN, INCOMPL_EXP, TRAIL_CHARS
 };
 
 void printerr(unsigned pad, enum err_code err)
@@ -16,47 +15,29 @@ void printerr(unsigned pad, enum err_code err)
 		"Incomplete expression",
 		"Trailing characters"
 	};
-	if (err != EMPTY_STR) {
-		while (pad--)
-			putchar(' ');
-		printf("  %s %s\n", arrow, err_msgs[err]);
-	}
+	while (pad--)
+		putchar(' ');
+	printf("  %s %s\n", arrow, err_msgs[err]);
 }
 
-Cell *read(char s[])
+Cell *parse(const char *s)
 {
-	Cell *cp = NULL;
-	int slen, rlen;
-	enum err_code err;
-	slen = strlen(s);
-	if ((rlen = readlist(&cp, s)) < 0) {
-		rlen = -rlen;
-		err = (rlen == slen) ? INCOMPL_EXP : UNEXP_TOKEN;
-	} else if (rlen == 0) {
-		err = slen ? UNEXP_TOKEN : EMPTY_STR;
-	} else if (rlen < slen) {
-		err = TRAIL_CHARS;
+	Cell *cp;
+	unsigned i = 0;
+
+	if (cp = parse_sexp(s, &i)) {
+		if (s[i] != '\0') {
+			printerr(i, TRAIL_CHARS);
+			return NULL;
+		}
 	} else {
-		return cp;
+		if (s[i] == '\0')
+			printerr(i, INCOMPL_EXP);
+		else
+			printerr(i, UNEXP_TOKEN);
+		return NULL;
 	}
-	printerr(rlen, err);
-	return NULL;
-}
-
-void print(Cell *cp)
-{
-	Cell *root;
-	if (!cp || printatm(cp, false))
-		return;
-	putchar('[');
-	for (root = cp; !is_null(cp); cp = cdr(cp)) {
-		if (printatm(cp, true))
-			break;
-		if (cp != root)
-			putchar(',');
-		print(car(cp));
-	}
-	putchar(']');
+	return cp;
 }
 
 int main()
@@ -65,7 +46,8 @@ int main()
 	Cell *cp;
 	initkeys(keysyms);
 	while ((s = readline("> "))) {		// -Wparen
-		cp = read(s);
+		if (*s != '\0')
+			cp = parse(s);
 		if (cp) {
 			print(apply(car(cp), cdr(cp)));
 			putchar('\n');
