@@ -3,9 +3,10 @@
  * following minimal grammar, in to Lisp lists.
  *
  *   <S-Expr>	::=  <atom> | <list>
- *   <list>	::=  "[" <items> "]"
+ *   <list>	::=  "[" <space> <items> <space> "]"
+ *   <space>	::=  <empty> | " "
  *   <items>	::=  <empty> | <sequence>
- *   <sequence>	::=  <S-Expr> | <S-Expr> "," <sequence>
+ *   <sequence>	::=  <S-Expr> | <S-Expr> "," <space> <sequence>
  *   <atom>	::=  <letter> <symbol>
  *   <symbol>	::=  <empty> | <letter> <symbol>
  */
@@ -45,33 +46,40 @@ Cell *parse_list(const char s[], unsigned *i)
 {
 	Cell *cp;
 
-	if (!parse_token('[', s, i))
+	if (!parse_token(LIST_BEG, s, i))
 		return NULL;
+	parse_space(s, i);
 	if (!(cp = parse_items(s, i)))
 		return NULL;
-	if (!parse_token(']', s, i))
+	parse_space(s, i);
+	if (!parse_token(LIST_END, s, i))
 		return NULL;
 	return cp;
 }
 
 Cell *parse_items(const char s[], unsigned *i)
 {
-	if (s[*i] == ']')
+	if (s[*i] == LIST_END)
 		return nil;
 	return parse_seq(s, i);
 }
 
 Cell *parse_seq(const char s[], unsigned *i)
 {
+	unsigned j;
 	Cell *cp, *seq;
 
 	if (!(cp = parse_sexp(s, i)))
 		return NULL;
-	if (parse_token(',', s, i)) {
-		if (!(seq = parse_seq(s, i)))
+	j = *i;
+	if (parse_token(LIST_SEP, s, i)) {
+		parse_space(s, i);
+		if (seq = parse_seq(s, i))
+			return cons(cp, seq);
+		if (*i > j + 2)
 			return NULL;
-		return cons(cp, seq);
 	}
+	*i = j;
 	return cons(cp, nil);
 }
 

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "delim.h"
+
 typedef enum {
 	NOKEY = -1, NIL, T,
 	ATOM, EQ, CAR, CDR, CONS,
@@ -18,7 +20,7 @@ typedef struct cell {
 } Cell;
 
 const char *keysyms[] = {
-	/*none,*/ "[]", "t",
+	/*none,*/ "nil", "t",
 	"atom", "eq", "car", "cdr", "cons",
 	"quote", "cond", "label", "lambda"
 };

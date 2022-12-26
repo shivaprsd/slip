@@ -26,7 +26,7 @@ bool printatm(Cell *cp, bool dot)
 {
 	if (!is_atom(cp))
 		return false;
-	putchar(dot ? '.' : 0);
+	putchar(dot ? CELL_SEP : 0);
 	fputs(cp->atm->sym, stdout);
 	return true;
 }
@@ -35,11 +35,11 @@ void printexp(Cell *cp)
 {
 	if (!cp || printatm(cp, false))
 		return;
-	putchar('[');
+	putchar(CELL_BEG);
 	printexp(cp->car);
-	putchar('.');
+	putchar(CELL_SEP);
 	printexp(cp->cdr);
-	putchar(']');
+	putchar(CELL_END);
 }
 
 void print(Cell *cp)
@@ -47,13 +47,13 @@ void print(Cell *cp)
 	Cell *root;
 	if (!cp || printatm(cp, false))
 		return;
-	putchar('[');
+	putchar(LIST_BEG);
 	for (root = cp; !is_null(cp); cp = cdr(cp)) {
 		if (printatm(cp, true))
 			break;
 		if (cp != root)
-			putchar(',');
+			putchar(LIST_SEP);
 		print(car(cp));
 	}
-	putchar(']');
+	putchar(LIST_END);
 }
