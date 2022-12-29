@@ -7,7 +7,7 @@ typedef enum {
 	NOKEY = -1, NIL, T,
 	ATOM, EQ, CAR, CDR, CONS,
 	QUOTE, COND, LABEL, LAMBDA,
-	NKEYS
+	LIST, MACRO, BIND, NKEYS
 } Keywrd;
 typedef struct {
 	const char *sym;
@@ -22,9 +22,11 @@ typedef struct cell {
 const char *keysyms[] = {
 	/*none,*/ "nil", "t",
 	"atom", "eq", "car", "cdr", "cons",
-	"quote", "cond", "label", "lambda"
+	"quote", "cond", "label", "lambda",
+	"list", "macro", "bind"
 };
 extern Cell *nil, *tru;
+extern Cell *bindenv(Cell *sym, Cell *val);
 
 Atom *new_atom(const char *s, Keywrd k)
 {
@@ -152,6 +154,10 @@ Cell *eval(Cell *e, Cell *a)
 			return cdr(eval(cadr(e), a));
 		case CONS:
 			return cons(eval(cadr(e), a), eval(caddr(e), a));
+		case LIST:
+			return evlis(cdr(e), a);
+		case BIND:
+			return bindenv(cadr(e), eval(caddr(e), a));
 		default:
 			return eval(cons(assoc(car(e), a), cdr(e)), a);
 		}
@@ -164,6 +170,9 @@ Cell *eval(Cell *e, Cell *a)
 		case LAMBDA:
 			return eval(caddar(e),
 				append(pair(cadar(e), evlis(cdr(e), a)), a));
+		case MACRO:
+			return eval(eval(caddar(e),
+				append(pair(cadar(e), cdr(e)), a)), a);
 		default:
 			break;
 		}

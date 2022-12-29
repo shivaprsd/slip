@@ -45,9 +45,10 @@ int main()
 	Cell *cp;
 
 	initkeys(keysyms);
+	envlist = nil;
 	while ((s = read_input())) {		// -Wparen
 		if (*s && (cp = parse(s))) {
-			print(eval(cp, nil));
+			print(eval(cp, envlist));
 			putchar('\n');
 		}
 		add_history(s);

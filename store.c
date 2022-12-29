@@ -2,6 +2,7 @@
 #include "util.c"
 
 Cell *symtree = NULL;
+Cell *envlist = NULL;
 Cell *nil, *tru, *quot;
 
 /* add|lookup atomic symbols in a BST */
@@ -28,4 +29,10 @@ void initkeys(const char *syms[])
 	quot = addsym(&symtree, syms[QUOTE], QUOTE);
 	for (k = T + 1; k < NKEYS; ++k)
 		addsym(&symtree, syms[k], k);
+}
+
+Cell *bindenv(Cell *sym, Cell *val)
+{
+	envlist = cons(list(sym, val), envlist);
+	return val;
 }
