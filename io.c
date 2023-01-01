@@ -1,20 +1,35 @@
 #include "store.c"
 
-char *read_input()
+#define MAX_LINES 100
+
+char *get_input(FILE *fp, const char *pmt)
+{
+	char *t;
+	size_t n;
+
+	if (fp == stdin)
+		return readline(pmt);
+	t = NULL;
+	if (getline(&t, &n, fp) == -1)
+		return NULL;
+	return t;
+}
+
+char *read_input(FILE *fp)
 {
 	int n, i;
-	char *s, *lines[100];
+	char *s, *lines[MAX_LINES];
 	const char *pmt = "> ";
 
 	n = i = 0;
-	while ((s = readline(pmt))) {		// -Wparen
+	while (i < MAX_LINES && (s = get_input(fp, pmt))) {
 		lines[i++] = trim(s);
 		pmt = ".. ";
-		if ((n += oc_diff(s)) <= 0) {
-			s = concat(lines, i);
+		if ((n += oc_diff(s)) <= 0)
 			break;
-		}
 	}
+	if ((s || fp != stdin) && i > 0)
+		s = concat(lines, i);
 	if (!s || i > 1) {
 		while (--i >= 0)
 			free(lines[i]);
