@@ -2,16 +2,19 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "delim.h"
+#define NOVAL 0
 
 typedef enum {
-	NOKEY = -1, NIL, T,
+	NUMOP = -1, NIL = 0, T,
 	ATOM, EQ, CAR, CDR, CONS,
 	QUOTE, COND, LABEL, LAMBDA,
-	LIST, MACRO, BIND, NKEYS
+	LIST, MACRO, BIND, NKEYS,
+	SYM, NUM
 } Keywrd;
 typedef struct {
 	const char *sym;
 	Keywrd key;
+	int val;
 } Atom;
 typedef struct cell {
 	const Atom *atm;
@@ -25,10 +28,14 @@ const char *keysyms[] = {
 	"quote", "cond", "label", "lambda",
 	"list", "macro", "bind"
 };
+const char *numops[] = {
+	"+", "-", "*", "/", "%",
+	">", "<", "=", ""
+};
 extern Cell *nil, *tru;
 extern Cell *bindenv(Cell *sym, Cell *val);
 
-Atom *new_atom(const char *s, Keywrd k)
+Atom *new_atom(const char *s, Keywrd k, int v)
 {
 	Atom *ap;
 	ap = (Atom *) malloc((size_t) sizeof(Atom));
@@ -37,6 +44,7 @@ Atom *new_atom(const char *s, Keywrd k)
 	} else {
 		ap->sym = s;
 		ap->key = k;
+		ap->val = v;
 	}
 	return ap;
 }
@@ -51,7 +59,15 @@ Cell *new_cell(const Atom *ap)
 	}
 	return cp;
 }
+Cell *new_num(int n)
+{
+	return new_cell(new_atom(NULL, NUM, n));
+}
 
+bool is_num(const Atom *ap)
+{
+	return ap && ap->key == NUM;
+}
 bool is_atom(Cell *x)
 {
 	if (!x) {
@@ -107,6 +123,41 @@ bool is_null(Cell *x)
 #define caddar(x) caddr(car(x))
 #define list(x, y) cons(x, cons(y, nil))
 
+Cell *numop(Cell *op, Cell *args)
+{
+	char c;
+	const Atom *x, *y;
+
+	x = car(args)->atm;
+	y = cadr(args)->atm;
+	if (!is_num(x) || !is_num(y)) {
+		puts("warning: numop() on non-numbers is undefined");
+		return NULL;
+	}
+	switch (c = *op->atm->sym) {
+	case '+':
+		return new_num(x->val + y->val);
+	case '-':
+		return new_num(x->val - y->val);
+	case '*':
+		return new_num(x->val * y->val);
+	case '/':
+	case '%':
+		if (!y->val) {
+			puts("math error: division by zero");
+			break;
+		}
+		return new_num(c == '/' ? x->val / y->val : x->val % y->val);
+	case '<':
+		return prop(x->val < y->val);
+	case '>':
+		return prop(x->val > y->val);
+	case '=':
+		return prop(x->val == y->val);
+	}
+	return NULL;
+}
+
 Cell *append(Cell *x, Cell *y)
 {
 	return is_null(x) ? y : cons(car(x), append(cdr(x), y));
@@ -137,7 +188,7 @@ Cell *eval(Cell *e, Cell *a)
 {
 	Cell *cp;
 	if (is_atom(e))
-		return assoc(e, a);
+		return is_num(e->atm) ? e : assoc(e, a);
 	if (is_atom(cp = car(e))) {
 		switch (cp->atm->key) {
 		case QUOTE:
@@ -158,8 +209,10 @@ Cell *eval(Cell *e, Cell *a)
 			return evlis(cdr(e), a);
 		case BIND:
 			return bindenv(cadr(e), eval(caddr(e), a));
+		case NUMOP:
+			return numop(cp, evlis(cdr(e), a));
 		default:
-			return eval(cons(assoc(car(e), a), cdr(e)), a);
+			return eval(cons(assoc(cp, a), cdr(e)), a);
 		}
 	}
 	if (is_atom(cp = caar(e))) {

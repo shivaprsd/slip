@@ -72,6 +72,7 @@ int main()
 	Cell *cp;
 
 	initkeys(keysyms);
+	initops(numops);
 	if (err = initenv(&envlist, initfile)) {
 		fprintf(stderr, "Unable to load %s\n", initfile);
 		return err;

@@ -9,6 +9,7 @@ Cell *parse_list (const char s[], unsigned *i);
 Cell *parse_items(const char s[], unsigned *i);
 Cell *parse_seq  (const char s[], unsigned *i);
 
+bool parse_num(const char *s, int *n);
 bool parse_token (const char t, const char s[], unsigned *i);
 #define parse_space(s, i) parse_token(' ', s, i)
 

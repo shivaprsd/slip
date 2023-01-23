@@ -69,3 +69,8 @@ int oc_diff(const char s[])
 	}
 	return i;
 }
+
+bool is_delim(const char c)
+{
+	return strchr(DELIMS, c);
+}

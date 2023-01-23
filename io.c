@@ -42,7 +42,10 @@ bool printatm(Cell *cp, bool dot)
 	if (!is_atom(cp))
 		return false;
 	putchar(dot ? CELL_SEP : 0);
-	fputs(cp->atm->sym, stdout);
+	if (is_num(cp->atm) && !cp->atm->sym)
+		printf("%d", cp->atm->val);
+	else
+		fputs(cp->atm->sym, stdout);
 	return true;
 }
 
