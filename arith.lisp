@@ -43,15 +43,30 @@
         (t (cons (not (car num))
                  (compli (cdr num))))))
 
-(defun padone (num)
-  (cond ((null (cdr num)) (list I))
-        (t (cons O (padone (cdr num))))))
+(defun int (num)
+  ((label pad (lambda (x y z)
+                (cond ((null x) (append y z))
+                      (t (pad (cdr x) (cdr y) z)))))
+   num (list  O O O O  O O O O  O O O O  O O O O) num))
+
+(defun digit (n)
+  (cond
+    ((eq n 'zero)	(int nil))
+    ((eq n 'one)	(int (list I)))
+    ((eq n 'two)	(incf (digit 'one)))
+    ((eq n 'three)	(incf (digit 'two)))
+    ((eq n 'four)	(incf (digit 'three)))
+    ((eq n 'five)	(incf (digit 'four)))
+    ((eq n 'six)	(incf (digit 'five)))
+    ((eq n 'seven)	(incf (digit 'six)))
+    ((eq n 'eight)	(incf (digit 'seven)))
+    ((eq n 'nine)	(incf (digit 'eight)))))
 
 (defun incf (num)
-  (add num (padone num)))
+  (add num (digit 'one)))
 
 (defun decf (num)
-  (add num (minus (padone num))))
+  (add num (minus (digit 'one))))
 
 (defun minus (num)
   (incf (compli num)))
@@ -78,9 +93,6 @@
 (defun half (num)
   (cons O (reverse (cdr (reverse num)))))
 
-(defun padzero (num)
-  (half (padone num)))
-
 (defun last (lst)
   (cond ((null (cdr lst)) (car lst))
         (t (last (cdr lst)))))
@@ -93,12 +105,24 @@
                                 (half numB)
                                 (cond ((last numB) (add numA prod))
                                       (t prod)))))))
-   numA numB (padzero numA)))
+   numA numB (digit 'zero)))
 
 (defun fact (n)
-  (cond ((zerop n) (padone n))
+  (cond ((zerop n) (digit 'one))
         (t (mult n (fact (decf n))))))
 
-(fact (list O O I O O))
-; Expected output (101! = 11000):
+(defun multen (n)
+  (double (mult n (digit 'five))))
+
+(defun numb (lst)
+  ((label numacc
+          (lambda (n acc)
+            (cond ((null n) acc)
+                  (t (numacc (cdr n)
+                             (add (multen acc) (digit (car n))))))))
+   lst (digit 'zero)))
+
+(add (numb '(four seven)) (numb '(three one)))
+; (fact (digit 'four))
+; Expected output (100! = 11000):
 ;(t t nil nil nil)
