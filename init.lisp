@@ -17,3 +17,24 @@
               (list 'quote (list 'label fsym (list 'lambda args body)))))
 
 ;;; Now start defining functions and start Lisping!
+(defun eqat (x y)
+  (cond ((atom x) (eq x y))
+        (t nil)))
+
+(defun null (x)
+  (eqat x nil))
+
+(defun mapcar (f l)
+  (cond ((null l) nil)
+        (t (cons (f (car l)) (mapcar f (cdr l))))))
+
+(defun cadr (x)
+  (car (cdr x)))
+
+(defmac listq (arg)
+  (cons 'list (mapcar
+                '(lambda (e)
+                   (cond ((atom e) (list 'quote e))
+                         ((eqat (car e) 'unqt) (cadr e))
+                         (t (list 'listq e))))
+                arg)))
